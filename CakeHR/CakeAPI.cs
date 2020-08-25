@@ -16,6 +16,7 @@ namespace CakeHR
         //private static List<KeyValuePair<int, String>> allEmployees = new List<KeyValuePair<int, string>>();
 
         private static Dictionary<int, String> allEmployees = new Dictionary<int, string>();
+        private static Dictionary<int, String> employeeNames = new Dictionary<int, string>();
         private static Dictionary<int, String> leavePolicies = new Dictionary<int, string>();
 
         public static dynamic getEmployeesOutofOffice()
@@ -96,6 +97,7 @@ namespace CakeHR
                 return null;
             }
             dynamic outputJson = JsonConvert.DeserializeObject(outputStr);
+
             for (int i = 0; i < outputJson.data.Count; i++) {
                 List<string> currentList = new List<string>();
                 currentList.Add(JsonConvert.SerializeObject(outputJson.data[i].title).Replace("\"",""));
@@ -117,10 +119,13 @@ namespace CakeHR
                 dynamic deserializedResponse = JsonConvert.DeserializeObject(response.Content);
                 for (int i = 0; i < deserializedResponse.data.Count; i++)
                 {
-                String imgUrl = JsonConvert.SerializeObject(deserializedResponse.data[i].picture_url);
-                imgUrl = imgUrl.Replace("\"", "");
-                allEmployees[int.Parse(JsonConvert.SerializeObject(deserializedResponse.data[i].id))] = imgUrl;
-                }
+                    String imgUrl = JsonConvert.SerializeObject(deserializedResponse.data[i].picture_url);
+                    imgUrl = imgUrl.Replace("\"", "");
+                    allEmployees[int.Parse(JsonConvert.SerializeObject(deserializedResponse.data[i].id))] = imgUrl;
+                    String employeeName = JsonConvert.SerializeObject(deserializedResponse.data[i].first_name);
+                    employeeName = employeeName.Replace("\"", "");
+                    employeeNames[int.Parse(JsonConvert.SerializeObject(deserializedResponse.data[i].id))] = employeeName;
+            }
         }
 
         private static void initiatePolicies()
@@ -156,6 +161,16 @@ namespace CakeHR
             }
 
             return allEmployees[employeeId];
+        }
+
+        public static String getEmployeeName(int employeeId)
+        {
+            if (employeeNames.Count == 0)
+            {
+                initiateEmployees();
+            }
+
+            return employeeNames[employeeId];
         }
     }
 }
