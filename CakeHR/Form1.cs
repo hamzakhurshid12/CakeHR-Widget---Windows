@@ -17,12 +17,15 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using MaterialSkin.Controls;
 using System.Threading;
+using System.Linq.Expressions;
 
 namespace CakeHR
 {
     //TODO: Back in X days
     public partial class Form1 : Form
     {
+        private Boolean refreshClicked = false;
+
 
         private readonly SynchronizationContext uiContext;
         //For Widget
@@ -34,7 +37,7 @@ namespace CakeHR
         static extern int SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
         //
 
-        private static bool logOff = false;
+        public static bool logOff = false;
 
         // For Drag and Corners
         public const int WM_NCLBUTTONDOWN = 0xA1;
@@ -63,7 +66,8 @@ namespace CakeHR
         public Form1()
         {
             InitializeComponent();
-            uiContext = SynchronizationContext.Current; // get ui thread context
+            //uiContext = SynchronizationContext.Current; // get ui thread context
+            makeWidget();
         }
 
 
@@ -107,7 +111,7 @@ namespace CakeHR
                 List<String> employee = leavingEmployees[i];
                 if (int.Parse(employee[1]) > 0)
                     addEmployee(flowLayoutPanel1, CakeAPI.getEmployeeProfileUrl(int.Parse(employee[0])),
-                        "Leaving in " + employee[1] + " day(s)",
+                        employee[1] + " days to leave",
                         employee[2], CakeAPI.getEmployeeName(int.Parse(employee[0])));
             }
 
@@ -309,6 +313,7 @@ namespace CakeHR
             byte[] bytes = wc.DownloadData(url);
             MemoryStream ms = new MemoryStream(bytes);
             System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
+            img = (Image)(new Bitmap(img, new Size(pictureBox2.Width, pictureBox2.Height)));
             return img;
         }
 
@@ -318,7 +323,8 @@ namespace CakeHR
             //flowLayoutPanel2.Location = new Point(flowLayoutPanel2.Location.X, materialLabel1.Location.Y + 10);
             panel3.Size = new Size(panel3.Width, flowLayoutPanel2.Height + 80);
             //newY = newY + panel3.Size.Height + 10;
-            this.Size = new Size(this.Size.Width, panel3.Location.Y + panel3.Height);
+            panel5.Size = new Size(panel5.Size.Width, panel3.Location.Y + panel3.Height);
+            this.Size = new Size(this.Size.Width, panel3.Location.Y + panel3.Height + 60);
 
             this.FormBorderStyle = FormBorderStyle.None;
             Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 5, 5));
@@ -361,12 +367,21 @@ namespace CakeHR
 
         private void sendToDesktop()
         {
-            IntPtr pWnd = FindWindow("Progman", null);
+            /*IntPtr pWnd = FindWindow("Progman", null);
             pWnd = FindWindowEx(pWnd, IntPtr.Zero, "SHELLDLL_DefVIew", null);
             pWnd = FindWindowEx(pWnd, IntPtr.Zero, "SysListView32", null);
             IntPtr tWnd = this.Handle;
-            SetParent(tWnd, pWnd);
+            SetParent(tWnd, pWnd);*/
+            //onDesktop = true;
         }
+
+        private void sendToFront()
+        {
+            //IntPtr tWnd = this.Handle;
+            //SetParent(tWnd, IntPtr.Zero);
+            //onDesktop = false;
+        }
+
 
         private void panel4_Paint(object sender, PaintEventArgs e)
         {
@@ -375,7 +390,26 @@ namespace CakeHR
 
         private void pictureBox1_Click(object sender, EventArgs e)
         {
-            signOut();
+            try
+            {
+                if (refreshClicked)
+                {
+                    return;
+                }
+                refreshClicked = true;
+                pictureBox1.Enabled = false;
+                notifications = null;
+                employeesOut = null;
+                leavingEmployees = null;
+                populateFormData();
+                pictureBox1.Enabled = true;
+                //signOut();
+                refreshClicked = false;
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private bool checkLogin() {
@@ -388,11 +422,11 @@ namespace CakeHR
 
         private void signOut() {
             logOff = true;
-            Properties.Settings.Default.userName = "";
-            Properties.Settings.Default.password = "";
-            Properties.Settings.Default.Save();
+            //Properties.Settings.Default.userName = "";
+            //Properties.Settings.Default.password = "";
+            //Properties.Settings.Default.Save();
             //new LoginForm().Show();
-            LoginForm.currentObject.Show();
+            LoginForm.getCurrentObject().Show();
             this.Hide();
             this.Close();
         }
@@ -404,6 +438,7 @@ namespace CakeHR
                 //Thread thread = new Thread(populateFormData);
                 //thread.Start();
                 populateFormData();
+                makeWidget();
                 //this.FormBorderStyle = FormBorderStyle.None;
                 //Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 15, 15));
 
@@ -417,7 +452,7 @@ namespace CakeHR
         private string getAnnouncementsHeading() {
             try
             {
-                string urlAddress = "https://dl.dropboxusercontent.com/s/jy5f02v0d6x53p1/Widget%20Announcement.txt";
+                string urlAddress = "https://diyar-damt.com/Shariyah.txt";
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -439,7 +474,7 @@ namespace CakeHR
                     return data;
                 }
             }
-            catch (Exception e) {
+            catch (Exception) {
                 return "Announcements";
             }
 
@@ -448,7 +483,27 @@ namespace CakeHR
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            populateFormData();
+            try
+            {
+                populateFormData();
+            }
+            catch (Exception) { 
+                
+            }
+        }
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            sendToFront();
+            this.ShowInTaskbar = true;
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void Form1_MouseEnter(object sender, EventArgs e)
+        {
+            //if (!onDesktop) {
+             //   sendToDesktop();
+            //}
         }
     }
 }

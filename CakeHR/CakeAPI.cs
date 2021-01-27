@@ -51,7 +51,7 @@ namespace CakeHR
         public static List<List<String>> getEmployeesLeavingSoon() {
             List<List<String>> leavingEmployees = new List<List<String>>();
 
-            DateTime dateNow = DateTime.Now;
+            DateTime dateNow = DateTime.Today;
             DateTime dateTomorrow = dateNow.AddDays(1);
             DateTime date5DaysAfter = dateNow.AddDays(5);
             String dateNowStr = dateNow.ToString("yyyy-MM-dd");
@@ -72,7 +72,7 @@ namespace CakeHR
                     String leaveStartStr = JsonConvert.SerializeObject(deserializedResponse.data[i].start_date).Replace("\"","");
                     DateTime leaveStart = DateTime.ParseExact(leaveStartStr, "yyyy-MM-dd", null);
                     String daysToLeave = (leaveStart.Subtract(dateNow).Days).ToString();
-                    Console.WriteLine(daysToLeave);
+                    //Console.WriteLine(daysToLeave);
                     int leavePolicyId = int.Parse(JsonConvert.SerializeObject(deserializedResponse.data[i].policy_id).Replace("\"", ""));
                     String policyname = getLeavePolicy(leavePolicyId);
 
@@ -97,6 +97,10 @@ namespace CakeHR
                 return null;
             }
             dynamic outputJson = JsonConvert.DeserializeObject(outputStr);
+
+            if (outputJson == null) {
+                return null;
+            }
 
             for (int i = 0; i < outputJson.data.Count; i++) {
                 List<string> currentList = new List<string>();

@@ -19,7 +19,7 @@ namespace CakeHR
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
 
-        public static LoginForm currentObject;
+        private static LoginForm currentObject;
 
         //For Widget
         [DllImport("User32.dll")]
@@ -44,6 +44,14 @@ namespace CakeHR
             int nWidthEllipse, // width of ellipse
             int nHeightEllipse // height of ellipse
         );
+
+        public static LoginForm getCurrentObject() {
+            if (currentObject == null)
+            {
+                currentObject = new LoginForm();
+            }
+            return currentObject;
+        }
 
         //For TextBox PlaceHolder
         private const int EM_SETCUEBANNER = 0x1501;
@@ -78,16 +86,29 @@ namespace CakeHR
         private bool checkLogin()
         {
             if(Properties.Settings.Default.userName!="" && Properties.Settings.Default.password != ""){
-                List<List<string>> notifications = CakeAPI.fetchNotifications();
-                if (notifications != null)
+                materialSingleLineTextField1.Text = Properties.Settings.Default.userName;
+                materialSingleLineTextField2.Text = Properties.Settings.Default.password;
+                if (Form1.logOff)
                 {
-                    new Form1().Show();
-                    this.Hide();
-                    return true;
+                    materialSingleLineTextField1.Text = Properties.Settings.Default.userName;
+                    materialSingleLineTextField2.Text = Properties.Settings.Default.password;
+                }
+                else
+                {
+                    List<List<string>> notifications = CakeAPI.fetchNotifications();
+                    if (notifications != null)
+                    {
+                        new Form1().Show();
+                        this.Hide();
+                        return true;
+                    }
+                    else {
+                        materialSingleLineTextField1.Text = Properties.Settings.Default.userName;
+                        materialSingleLineTextField2.Text = Properties.Settings.Default.password;
+                    }
                 }
             }
             return false;
-            
         }
 
         private void LoginForm_MouseMove(object sender, MouseEventArgs e)
@@ -154,6 +175,7 @@ namespace CakeHR
                 if (notifications != null)
                 {
                     this.Hide();
+                    Form1.logOff = false;
                     new Form1().Show();
                 }
                 else
